@@ -1,89 +1,95 @@
 # agent-community-writer
 
-Claude로 **페르소나 기반 커뮤니티 게시글**을 생성하는 TypeScript 템플릿입니다.
+**English** | [한국어](README.ko.md)
 
-> 이 프로젝트는 Anthropic의 공식 프로젝트가 아니며 Anthropic과 제휴 관계가 없습니다. Claude는 Anthropic의 상표입니다.
-> *Not affiliated with or endorsed by Anthropic. Claude is a trademark of Anthropic.*
+A TypeScript template that uses Claude to generate **persona-driven community posts**.
 
-> Persona-driven community post generator powered by Claude. Generates posts in each persona's voice, self-reviews them, optionally weaves in today's trends and Unsplash images, then hands them to a pluggable publisher (console / file / webhook).
+> Not affiliated with or endorsed by Anthropic. Claude is a trademark of Anthropic.
+
+Each post is written in a persona's voice and reviewed before it goes out. You can mix in today's trends and Unsplash images, and send the result to a publisher you choose (console, file, or webhook).
 
 ```
-페르소나 + 게시판 설정 + 최근 글 히스토리 + 오늘의 트렌드
+persona + board config + recent post history + today's trends
             │
             ▼
-   ┌──────────────────┐   반려 시 피드백 반영해 재생성
-   │  초안 생성 (Claude) │◀──────────────┐
-   └────────┬─────────┘                │
-            ▼                          │
-   ┌──────────────────┐   fail         │
-   │ 규칙 검사 → Claude 평가 │────────────┘
-   └────────┬─────────┘
+   ┌──────────────────────┐   on rejection, regenerate with feedback
+   │  Draft (Claude)      │◀──────────────┐
+   └────────┬─────────────┘               │
+            ▼                             │
+   ┌──────────────────────┐   fail        │
+   │ Rule check → Claude  │───────────────┘
+   │ review               │
+   └────────┬─────────────┘
             ▼ pass
-   이미지 검색(Unsplash) → Claude가 글에 맞는 사진 선택
+   Image search (Unsplash) → Claude picks photos that fit the post
             ▼
-   AI 생성 표기 추가 → Publisher (console | file | webhook)
+   Append AI disclosure → Publisher (console | file | webhook)
             ▼
-   페르소나별 히스토리 저장 (다음 글의 맥락으로 사용)
+   Save per-persona history (used as context for the next post)
 ```
 
-## ⚠️ 사용 원칙
+> **Language note:** The prompts and the sample config/personas are in Korean, so generated posts come out in Korean. To target another language, translate the prompt text in `src/generate.ts`, `src/trends.ts`, and `src/cli/expand-personas.ts`, then rewrite the config and personas in that language.
 
-이 프로젝트는 **본인이 운영하는 커뮤니티의 초기 콘텐츠(seed), 데모, 테스트 데이터**를 만들기 위한 도구입니다.
+## ⚠️ Acceptable use
 
-- 다른 사람이 운영하는 플랫폼에 가상 계정으로 글을 올리는 데 쓰지 마세요. 대부분의 서비스 약관 위반이며 스팸입니다.
-- 생성된 글에는 기본으로 **AI 생성 표기**가 붙습니다(`disclosure.enabled`). webhook payload에는 항상 `aiGenerated: true`가 들어갑니다.
-- 페르소나는 **가상 인물**이어야 합니다. 실존 인물을 흉내 내지 마세요.
+This tool creates **seed content, demos, and test data for a community you run yourself**.
 
-## 주요 기능
+- Don't use it to post from fake accounts on platforms run by others. Most services forbid this in their terms, and it is spam.
+- An **AI-generated notice** is appended to every post by default (`disclosure.enabled`). The webhook payload always includes `aiGenerated: true`.
+- Personas must be **fictional**. Do not impersonate real people.
 
-- **페르소나 말투 재현**: 이름·나이·직업·말투·관심사, 그리고 `expand-personas`로 늘린 상세 설정을 바탕으로 글을 씁니다.
-- **자체 품질 검수**: 규칙 검사(길이, 인사말, 금지 표현)를 먼저 하고, 별도 컨텍스트의 Claude가 평가합니다. 반려되면 이유를 피드백으로 넣어 다시 생성합니다.
-- **연속성**: 페르소나별 최근 글을 기억해서 주제가 겹치지 않게 합니다.
-- **트렌드 반영**: 서버 측 웹 검색 도구로 오늘의 이슈를 모아 두고, 뉴스처럼 인용하지 않고 일상 대화의 소재로만 씁니다.
-- **이미지**: Unsplash 후보 이미지의 설명을 보고 Claude가 어울리는 사진을 고릅니다. 작가 출처 정보와 다운로드 집계는 Unsplash 가이드라인을 따릅니다.
-- **구조화 출력**: 모든 Claude 응답은 Zod 스키마로 강제·검증합니다. JSON 파싱 땜질이 필요 없습니다.
-- **발행 대상 교체 가능**: 기본값은 콘솔 출력입니다. 파일 저장이나 webhook으로 바꿀 수 있습니다.
+## Features
 
-## 빠른 시작
+- **Persona voice.** Posts are based on each persona's name, age, job, speaking style, and interests, plus any extra detail added by `expand-personas`.
+- **Self-review.** Rule checks (length, greetings, banned phrases) run first. Then Claude reviews the draft in a separate context. If the draft is rejected, the reasons go back into the prompt for the next attempt.
+- **Continuity.** Recent posts are remembered per persona so topics don't repeat.
+- **Trends.** The server-side web search tool collects today's topics. They are worked into posts as casual conversation, not quoted like news.
+- **Images.** Claude reads the descriptions of Unsplash candidates and picks the ones that fit. Photographer attribution and download tracking follow the Unsplash API guidelines.
+- **Structured outputs.** Every Claude response is constrained and validated with a Zod schema, so there is no fragile JSON parsing.
+- **Pluggable publishers.** Output goes to the console by default. You can switch to file output or a webhook.
+
+## Quick start
+
+Requires Node.js 22 or later.
 
 ```bash
 git clone https://github.com/<you>/agent-community-writer.git
 cd agent-community-writer
 npm install
-cp .env.example .env   # ANTHROPIC_API_KEY 입력
+cp .env.example .env   # set ANTHROPIC_API_KEY
 ```
 
 ```bash
-# 발행 없이 콘솔에 출력만 (히스토리도 저장 안 함)
+# Print to the console only: nothing is published and no history is saved
 npm run post -- --dry-run
 
-# 특정 게시판에 2개만
+# Only 2 posts, only on one board
 npm run post -- --board FREE --count 2 --dry-run
 
-# 오늘의 트렌드 수집 → context/trends.json
+# Collect today's trends → context/trends.json
 npm run trends
 
-# 페르소나 상세 설정 자동 확장
+# Generate extra detail for each persona
 npm run expand-personas
 ```
 
-`.env` 파일은 자동으로 읽힙니다 (Node.js 22 이상 필요).
+The `.env` file is loaded automatically.
 
-## 설정
+## Configuration
 
 ### `config/community.json`
 
-| 필드 | 설명 |
+| Field | Description |
 |---|---|
-| `name`, `description` | 커뮤니티 이름과 성격. 시스템 프롬프트에 들어갑니다 |
-| `timezone` | 트렌드 날짜 기준 타임존 |
-| `boards[]` | `id`, `label`, `description`, `images`(첨부 수), `useTrends`, `postsPerRun`, `extraInstructions` |
-| `trends.categories[]` | 웹 검색으로 조사할 주제 (`key`, `label`, `query`) |
-| `writing` | `minLength`, `maxLength`, `avoid`(금지 표현), `maxRetries` |
-| `disclosure` | AI 생성 표기 사용 여부와 문구 |
-| `history.limit` | 페르소나별로 기억할 최근 글 수 |
+| `name`, `description` | Community name and character, used in the system prompt |
+| `timezone` | Time zone that decides the date for trends |
+| `boards[]` | `id`, `label`, `description`, `images` (how many to attach), `useTrends`, `postsPerRun`, `extraInstructions` |
+| `trends.categories[]` | Topics to research with web search (`key`, `label`, `query`) |
+| `writing` | `minLength`, `maxLength`, `avoid` (banned phrases), `maxRetries` |
+| `disclosure` | Turns the AI-generated notice on or off and sets its text |
+| `history.limit` | How many recent posts to remember per persona |
 
-예시는 반려동물 커뮤니티입니다. 게시판과 트렌드 카테고리만 바꾸면 자동차·육아·게임 등 다른 주제에도 그대로 쓸 수 있습니다.
+The sample is a pet-owner community. Change the boards and trend categories to use it for other topics, such as cars, parenting, or games.
 
 ### `personas/personas.json`
 
@@ -101,27 +107,28 @@ npm run expand-personas
 }
 ```
 
-- `id`: 히스토리 파일명으로 쓰입니다 (`history/<id>.json`).
-- `externalUserId`: 발행 대상 시스템의 사용자 ID입니다. webhook payload로 전달됩니다.
-- `details`: `expand-personas`가 채우는 상세 설정입니다. 직접 써도 됩니다.
+- `id`: also the history file name (`history/<id>.json`).
+- `externalUserId`: the user ID in the system you publish to. It is passed through in the webhook payload.
+- `communityProfile`: persona details tied to the community's topic, such as their pet, car, or favorite team.
+- `details`: extra persona detail filled in by `expand-personas`. You can also write it yourself.
 
-### 환경 변수
+### Environment variables
 
-| 변수 | 기본값 | 설명 |
+| Variable | Default | Description |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | — | Claude API 키 (필수) |
-| `CLAUDE_MODEL` | `claude-opus-5-5` | 비용을 줄이려면 `claude-sonnet-5-5`, `claude-haiku-5-5` |
-| `CLAUDE_EFFORT` | `medium` | `low` ~ `max`. 평가·이미지 선택은 항상 `low` |
-| `UNSPLASH_ACCESS_KEY` | — | 없으면 이미지 없이 진행 |
+| `ANTHROPIC_API_KEY` | — | Claude API key (required) |
+| `CLAUDE_MODEL` | `claude-opus-5-5` | Use `claude-sonnet-5-5` or `claude-haiku-5-5` to cut costs |
+| `CLAUDE_EFFORT` | `medium` | `low` to `max`. Review and image selection always use `low` |
+| `UNSPLASH_ACCESS_KEY` | — | If unset, posts are generated without images |
 | `PUBLISHER` | `console` | `console` \| `file` \| `webhook` |
-| `WEBHOOK_URL`, `WEBHOOK_TOKEN` | — | webhook 사용 시 필수. `Authorization: Bearer <token>`으로 전송 |
-| `COMMUNITY_CONFIG`, `PERSONAS_PATH` | 위 기본 경로 | 설정·페르소나 파일 경로 재정의 |
+| `WEBHOOK_URL`, `WEBHOOK_TOKEN` | — | Required for the webhook publisher. The token is sent as `Authorization: Bearer <token>` |
+| `COMMUNITY_CONFIG`, `PERSONAS_PATH` | default paths above | Override where the config and persona files are read from |
 
-정책상 거절(refusal)이 나오면 서버 측 fallback(`fallbacks: "default"`)이 다른 모델로 자동 재시도합니다.
+If Claude declines a request for policy reasons, the server-side fallback (`fallbacks: "default"`) retries it on another model automatically.
 
-## Publisher
+## Publishers
 
-### webhook payload
+### Webhook payload
 
 ```json
 {
@@ -137,40 +144,40 @@ npm run expand-personas
 }
 ```
 
-받는 쪽 엔드포인트는 **반드시 토큰을 검증**해야 합니다. 인증 없는 글쓰기 API를 열어 두면 누구나 임의의 사용자로 글을 쓸 수 있습니다. Unsplash 이미지를 게시할 때는 `photographer`/`photographerUrl`로 출처를 표시하세요.
+The receiving endpoint **must verify the token**. A write API with no authentication lets anyone post as any user. When you display Unsplash images, credit the photographer using `photographer` and `photographerUrl`.
 
-### 직접 추가하기
+### Writing your own
 
-`src/publishers/index.ts`의 `Publisher` 인터페이스(`publish(post) => Promise<string>`)를 구현해서 `createPublisher`에 등록하면 됩니다.
+Implement the `Publisher` interface in `src/publishers/index.ts` (`publish(post) => Promise<string>`) and register it in `createPublisher`.
 
 ## GitHub Actions
 
-`.github/workflows/post.yml`은 **수동 실행만** 켜져 있고, 기본값이 dry-run입니다.
+`.github/workflows/post.yml` runs **only when triggered manually**, and dry-run is on by default.
 
-1. 저장소 Secrets에 `ANTHROPIC_API_KEY` (필요하면 `UNSPLASH_ACCESS_KEY`, `WEBHOOK_URL`, `WEBHOOK_TOKEN`)를 등록합니다.
-2. Variables에 `PUBLISHER`(예: `webhook`)와 `CLAUDE_MODEL`(선택)을 설정합니다.
-3. 자동 실행이 필요하면 워크플로의 `schedule` 주석을 해제합니다.
+1. Add `ANTHROPIC_API_KEY` to the repository secrets, plus `UNSPLASH_ACCESS_KEY`, `WEBHOOK_URL`, and `WEBHOOK_TOKEN` if you use them.
+2. Set `PUBLISHER` (for example `webhook`) and, optionally, `CLAUDE_MODEL` as repository variables.
+3. To run on a schedule, uncomment the `schedule` block in the workflow.
 
-실행 후 `history/`, `context/` 변경분이 커밋됩니다. 페르소나와 히스토리가 공개되면 곤란하다면 **private 저장소**에서 운영하세요.
+Each run commits changes in `history/` and `context/`. If your personas and history shouldn't be public, run it from a **private repository**.
 
-## 구조
+## Project layout
 
 ```
 src/
-├─ claude.ts            # Claude API 래퍼 (구조화 출력, 웹 검색, fallback)
-├─ config.ts            # 커뮤니티 설정 스키마/로더
-├─ personas.ts          # 페르소나 스키마/선택
-├─ history.ts           # 페르소나별 최근 글
-├─ trends.ts            # 웹 검색 기반 트렌드 수집
-├─ images.ts            # Unsplash 검색 + 선택
-├─ generate.ts          # 초안 생성 + 평가
+├─ claude.ts            # Claude API wrapper (structured outputs, web search, fallback)
+├─ config.ts            # community config schema and loader
+├─ personas.ts          # persona schema and selection
+├─ history.ts           # recent posts per persona
+├─ trends.ts            # trend collection with web search
+├─ images.ts            # Unsplash search and selection
+├─ generate.ts          # drafting and review
 ├─ publishers/index.ts  # console / file / webhook
 └─ cli/                 # post, trends, expand-personas
 ```
 
-## 비용
+## Cost
 
-글 1개당 Claude 호출은 대략 2~4회(생성, 평가, 이미지 선택, 재시도)입니다. 먼저 `--dry-run`과 `--count 1`로 사용량을 확인하세요. 모델별 단가는 [Anthropic 가격 페이지](https://www.anthropic.com/pricing)에서 볼 수 있습니다.
+Each post takes about 2–4 Claude calls (draft, review, image selection, and any retries). Start with `--dry-run` and `--count 1` to see what a run uses. See [Anthropic's pricing page](https://www.anthropic.com/pricing) for per-model rates.
 
 ## License
 
