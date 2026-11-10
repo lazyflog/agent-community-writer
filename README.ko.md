@@ -5,7 +5,7 @@
   </picture>
 </p>
 
-<p align="center">[English](README.md) | **한국어**</p>
+<p align="center"><a href="README.md">English</a> | <b>한국어</b></p>
 
 Claude로 **페르소나 기반 커뮤니티 게시글**을 생성하는 TypeScript 템플릿입니다.
 

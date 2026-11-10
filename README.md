@@ -5,7 +5,7 @@
   </picture>
 </p>
 
-<p align="center">**English** | [한국어](README.ko.md)</p>
+<p align="center"><b>English</b> | <a href="README.ko.md">한국어</a></p>
 
 A TypeScript template that uses Claude to generate **persona-driven community posts**.
 
