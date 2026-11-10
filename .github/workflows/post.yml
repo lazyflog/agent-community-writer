@@ -1,0 +1,75 @@
+name: Community writer
+
+# ⚠️ 기본값은 수동 실행(workflow_dispatch)만 켜져 있습니다.
+#    자동 실행을 원하면 아래 schedule 주석을 해제하세요. (cron은 UTC 기준)
+on:
+  # schedule:
+  #   - cron: '0 2 * * *'   # 11:00 KST — 트렌드 수집
+  #   - cron: '0 3 * * *'   # 12:00 KST — 글 생성
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 실행 모드
+        type: choice
+        default: post
+        options: [post, trends]
+      board:
+        description: 특정 게시판 ID만 (비우면 전체)
+        required: false
+      dry_run:
+        description: 발행하지 않고 출력만
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: community-writer
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Collect trends
+        if: github.event.inputs.mode == 'trends' || github.event.schedule == '0 2 * * *'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CLAUDE_MODEL: ${{ vars.CLAUDE_MODEL }}
+        run: npm run trends
+
+      - name: Generate posts
+        if: github.event.inputs.mode == 'post' || github.event.schedule == '0 3 * * *'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CLAUDE_MODEL: ${{ vars.CLAUDE_MODEL }}
+          UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
+          PUBLISHER: ${{ vars.PUBLISHER || 'console' }}
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+          WEBHOOK_TOKEN: ${{ secrets.WEBHOOK_TOKEN }}
+          BOARD: ${{ github.event.inputs.board }}
+          DRY_RUN: ${{ github.event.inputs.dry_run }}
+        run: |
+          ARGS=()
+          [ -n "$BOARD" ] && ARGS+=(--board "$BOARD")
+          [ "$DRY_RUN" = "true" ] && ARGS+=(--dry-run)
+          npm run post -- "${ARGS[@]}"
+
+      - name: Commit history & context
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add history/ context/
+          git diff --cached --quiet || git commit -m "chore: update history/context [skip ci]"
+          git push

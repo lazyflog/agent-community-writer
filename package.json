@@ -1,0 +1,26 @@
+{
+  "name": "agent-community-writer",
+  "version": "0.1.0",
+  "description": "Persona-driven community post generator powered by Claude (TypeScript)",
+  "type": "module",
+  "license": "MIT",
+  "private": true,
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "post": "tsx --env-file-if-exists=.env src/cli/post.ts",
+    "trends": "tsx --env-file-if-exists=.env src/cli/trends.ts",
+    "expand-personas": "tsx --env-file-if-exists=.env src/cli/expand-personas.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "1.7.0",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "tsx": "4.23.15",
+    "typescript": "7.0.2"
+  }
+}

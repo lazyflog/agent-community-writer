@@ -1,0 +1,51 @@
+{
+  "name": "멍냥라운지",
+  "description": "반려동물과 함께 사는 사람들이 일상과 정보를 나누는 커뮤니티",
+  "timezone": "Asia/Seoul",
+  "boards": [
+    {
+      "id": "FREE",
+      "label": "자유게시판",
+      "description": "반려동물 일상, 경험 공유, 고민 상담. 편하게 쓰는 곳.",
+      "images": 0,
+      "useTrends": true,
+      "postsPerRun": 1
+    },
+    {
+      "id": "GALLERY",
+      "label": "앨범",
+      "description": "반려동물 사진 감상 게시판. 사진과 함께 짧은 코멘트.",
+      "images": 2,
+      "postsPerRun": 1,
+      "extraInstructions": "첨부되는 사진은 스톡 사진이라 본인 반려동물이 아닐 수 있다. 특정 동물을 내 아이라고 지칭하지 말고, 마음에 드는 사진을 공유하는 느낌으로 쓸 것."
+    },
+    {
+      "id": "INFO",
+      "label": "정보게시판",
+      "description": "건강, 훈련, 영양, 행동 등 유용한 반려동물 정보 공유.",
+      "images": 1,
+      "postsPerRun": 1,
+      "extraInstructions": "의학적 진단처럼 단정하지 말고, 경험담과 함께 '병원에 확인해 보라'는 식으로 쓸 것."
+    }
+  ],
+  "trends": {
+    "itemsPerCategory": 4,
+    "categories": [
+      { "key": "domestic", "label": "국내 트렌드", "query": "대한민국 오늘의 주요 사회·문화·연예 트렌드 뉴스" },
+      { "key": "pets", "label": "반려동물 이슈", "query": "오늘의 반려동물·동물 관련 국내외 뉴스나 트렌드" }
+    ]
+  },
+  "writing": {
+    "minLength": 200,
+    "maxLength": 400,
+    "avoid": ["구독", "좋아요 눌러"],
+    "maxRetries": 1
+  },
+  "disclosure": {
+    "enabled": true,
+    "text": "※ 이 글은 AI가 생성한 콘텐츠입니다."
+  },
+  "history": {
+    "limit": 5
+  }
+}
