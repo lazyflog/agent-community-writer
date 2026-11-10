@@ -1,6 +1,11 @@
-# agent-community-writer
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/agent-community-writer-logo-dark.png">
+    <img src="assets/agent-community-writer-logo.png" alt="agent-community-writer" width="600">
+  </picture>
+</p>
 
-[English](README.md) | **한국어**
+<p align="center">[English](README.md) | **한국어**</p>
 
 Claude로 **페르소나 기반 커뮤니티 게시글**을 생성하는 TypeScript 템플릿입니다.
 

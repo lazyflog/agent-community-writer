@@ -1,6 +1,11 @@
-# agent-community-writer
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/agent-community-writer-logo-dark.png">
+    <img src="assets/agent-community-writer-logo.png" alt="agent-community-writer" width="600">
+  </picture>
+</p>
 
-**English** | [한국어](README.ko.md)
+<p align="center">**English** | [한국어](README.ko.md)</p>
 
 A TypeScript template that uses Claude to generate **persona-driven community posts**.
 
